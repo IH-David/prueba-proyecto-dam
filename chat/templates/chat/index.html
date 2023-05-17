@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<html>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'chat/style.css' %}" />
+        <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <h1>ChatBot App</h1>
+        <div>
+            <div id="chatbot">
+                <p class="botText"><span>Hi there</span></p>
+            </div>
+            <div id="userInput">
+                <input type="text" id="textInput" name="userMessage" placeholder="Hazme una pregunta..."/>
+                <input type="submit" value="Enviar" id="buttonInput"/>
+                <input type="submit" value="Descargar conversación" id="buttonGenerarArchivo"/>  
+            </div>
+        </div>
+
+
+        <script>
+            var preguntas = [];
+            var respuestas = [];
+
+            function getUserResponse() {
+                var userText = $('#textInput').val();
+                var userHTML = "<p class='userText'>User: <span>"+userText+"</span></p>";
+                $('#textInput').val("");
+
+                $('#chatbot').append(userHTML);
+                preguntas.push(userText)
+
+                $.get('/chat/getResponse', {userMessage:userText}).done(function(data) {
+                    var returnedMessage = "<p class='botText'>ChatBot: <span>"+data+"</span></p>"
+                    $('#chatbot').append(returnedMessage)
+                    respuestas.push(data)
+                })
+            }
+
+            function generarArchivoTxt() {
+                var textoArchivo = "";
+            
+                // Combinar preguntas y respuestas en una sola cadena de texto
+                for (var i = 0; i < preguntas.length; i++) {
+                    textoArchivo += "Pregunta: " + preguntas[i] + "\n";
+                    textoArchivo += "Respuesta: " + respuestas[i] + "\n\n";
+                }
+            
+                // Crear un enlace de descarga para el archivo .txt
+                var elementoA = document.createElement('a');
+                elementoA.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textoArchivo));
+                elementoA.setAttribute('download', 'conversacion.txt');
+                elementoA.style.display = 'none';
+                document.body.appendChild(elementoA);
+            
+                // Simular un clic en el enlace para iniciar la descarga
+                elementoA.click();
+            
+                // Eliminar el elemento del DOM después de la descarga
+                document.body.removeChild(elementoA);
+            }
+            
+
+            $('#buttonGenerarArchivo').click(function() {
+                generarArchivoTxt();
+            });
+            
+
+            $('#buttonInput').click(function() {
+                getUserResponse();
+            })
+
+        </script>
+
+    </body>
+</html>
+{% endblock %}
+
